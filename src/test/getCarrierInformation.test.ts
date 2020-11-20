@@ -1,29 +1,43 @@
 import ICarrierDetail from "contract/src/DTO/ICarrierDetail";
 import Contract from "../contract/Contract";
+import { NotFoundError } from "../error";
+import dotenv from "dotenv";
+import * as db from "../util/dbHandler";
 
-var contract: Contract;
+const contract: Contract = new Contract();
 
-beforeAll(() => {
-  contract = new Contract();
+beforeAll(async () => {
+  dotenv.config();
+  await db.connect(process.env.TEST_CONNECTION_STRING);
+  await db.drop();
 });
 
-describe("Succes scenarios", () => {
-  test("Should return ICarrierDetail from iata", async () => {
-    //arrange
-    const iata: string = "SK";
-    const name: string = "Scandinavian Airlines";
-    const expected: ICarrierDetail = { iata, name };
+// describe("Succes scenarios", () => {
+//   test("Should return ICarrierDetail from iata", async () => {
+//     //arrange
+//     const iata: string = "SK";
+//     const name: string = "Scandinavian Airlines";
+//     const expected: ICarrierDetail = { iata, name };
 
-    //act
-    const actual: ICarrierDetail = await contract.getCarrierInformation(iata);
+//     //act
+//     const actual: ICarrierDetail = await contract.getCarrierInformation(iata);
 
-    //assert
-    expect(expected).toEqual(expected);
-  });
-});
+//     //assert
+//     expect(actual).toEqual(expected);
+//   });
+// });
 
 describe("Fail scenarios", () => {
-  test("True should be truthy", () => {
-    expect(true).toBeTruthy();
+  test("Should throw NotFoundError", async () => {
+    //arrange
+    const iata: string = "XX";
+
+    //act
+    const action = async () => {
+      await contract.getCarrierInformation(iata);
+    };
+
+    //assert
+    await expect(action).rejects.toThrow(NotFoundError);
   });
 });

@@ -5,14 +5,21 @@ import ICarrierDetail from "contract/src/DTO/ICarrierDetail";
 import IFlightSummary from "contract/src/DTO/IFlightSummary";
 import IReservationDetail from "contract/src/DTO/IReservationDetail";
 import IReservationSummary from "contract/src/DTO/IReservationSummary";
+import { NotFoundError } from "../error";
 import IAirportIdentifier from "contract/src/IAirportIdentifier";
 import IBookingIdentifier from "contract/src/IBookingIdentifier";
 import IFlightIdentifier from "contract/src/IFlightIdentifier";
+import Carrier from "../schema/Carrier";
 
 export default class Contract implements IContract {
-  getCarrierInformation(iata: string): Promise<ICarrierDetail> {
-    throw new Error("Method not implemented.");
+  async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
+    const carrier: ICarrierDetail | null = await Carrier.findOne({ iata });
+    if (!carrier) {
+      throw new NotFoundError(`Could not find Carrier Information for IATA: ${iata}`);
+    }
+    return carrier;
   }
+
   getAirportInformation(iata: string): Promise<IAirportDetail> {
     throw new Error("Method not implemented.");
   }

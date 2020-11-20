@@ -1,8 +1,4 @@
 module.exports = {
-  preset: "ts-jest",
-  globals: {
-    "ts-jest": {
-      diagnostics: false,
-    },
-  },
+  preset: 'ts-jest',
+  testEnvironment: 'node',
 };
