@@ -9,15 +9,16 @@ import { NotFoundError } from "../error";
 import IAirportIdentifier from "contract/src/IAirportIdentifier";
 import IBookingIdentifier from "contract/src/IBookingIdentifier";
 import IFlightIdentifier from "contract/src/IFlightIdentifier";
-import Carrier from "../schema/Carrier";
+import Carrier, { ICarrier } from "../schema/Carrier";
 
 export default class Contract implements IContract {
   async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
-    const carrier: ICarrierDetail | null = await Carrier.findOne({ iata });
+    const carrier: ICarrier | null = await Carrier.findOne({ iata });
     if (!carrier) {
       throw new NotFoundError(`Could not find Carrier Information for IATA: ${iata}`);
     }
-    return carrier;
+    const carrierDetail: ICarrierDetail | null = { iata: carrier.iata, name: carrier.name };
+    return carrierDetail;
   }
 
   getAirportInformation(iata: string): Promise<IAirportDetail> {

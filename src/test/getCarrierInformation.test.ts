@@ -10,22 +10,23 @@ beforeAll(async () => {
   dotenv.config();
   await db.connect(process.env.TEST_CONNECTION_STRING);
   await db.drop();
+  await db.populate();
 });
 
-// describe("Succes scenarios", () => {
-//   test("Should return ICarrierDetail from iata", async () => {
-//     //arrange
-//     const iata: string = "SK";
-//     const name: string = "Scandinavian Airlines";
-//     const expected: ICarrierDetail = { iata, name };
+describe("Succes scenarios", () => {
+  test("Should return ICarrierDetail from iata", async () => {
+    //arrange
+    const iata: string = "SK";
+    const name: string = "Scandinavian Airlines";
+    const expected: ICarrierDetail = { iata, name };
 
-//     //act
-//     const actual: ICarrierDetail = await contract.getCarrierInformation(iata);
+    //act
+    const actual: ICarrierDetail = await contract.getCarrierInformation(iata);
 
-//     //assert
-//     expect(actual).toEqual(expected);
-//   });
-// });
+    //assert
+    expect(actual).toEqual(expected);
+  });
+});
 
 describe("Fail scenarios", () => {
   test("Should throw NotFoundError", async () => {

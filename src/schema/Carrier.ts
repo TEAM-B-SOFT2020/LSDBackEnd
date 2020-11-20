@@ -14,6 +14,6 @@ const schemaName = "Carrier";
 
 // global[schemaName] = global[schemaName] || mongoose.model<IAPIKeySetting>(schemaName, schema);
 
-// const TypeExport: Model<IAPIKeySetting> = global[schemaName];
+const TypeExport: Model<ICarrier> = mongoose.model<ICarrier>(schemaName, schema);
 
-export default mongoose.model<ICarrier>(schemaName, schema);
+export default TypeExport;
