@@ -23,7 +23,7 @@ jobs:
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       env: # Or as an environment variable
-        TEST_CONNECTION_STRING: ${{ secrets.TEST_CONNECTION_STRING }}
+        TEST_CONNECTION_STRING: mongodb+srv://lsduser:7o0cVnxTuyzLAAZL@lsdbackend.wop6r.mongodb.net/lsdbackend_test?retryWrites=true&w=majority
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install
