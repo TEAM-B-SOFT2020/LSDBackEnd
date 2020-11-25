@@ -7,9 +7,23 @@ import Leg, { ILeg } from "../schema/Leg";
 import Route, { IRoute } from "../schema/Route";
 import { IBookingLeg } from "../schema/BookingLeg";
 import Booking, { IBooking } from "../schema/Booking";
+const shortid = require("short-id")
 
+export async function connect(connectionString: string | undefined, isTestConnection: boolean = false) {
+  if (isTestConnection) {
 
-export async function connect(connectionString: string | undefined) {
+    shortid.configure({
+      algorithm: 'sha256',
+      salt: Math.random
+    })
+
+    shortid.configure({
+      length: 10
+    })
+
+    connectionString = `${connectionString}_${shortid.generate()}?retryWrites=true&w=majority`
+  }
+
   if (!connectionString) throw new Error("Invalid connection string");
   mongoose.connection.on("connected", function () {
     console.log("Mongoose default connection open ");
@@ -25,7 +39,7 @@ export async function connect(connectionString: string | undefined) {
 
 export async function drop() {
   const collections = await mongoose.connection.db.collections();
-  
+
   for (const collection of collections) {
     await collection.drop();
   }
