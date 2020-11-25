@@ -26,3 +26,7 @@ export async function populate() {
   const carrier = new Carrier({ iata: "SK", name: "Scandinavian Airlines" });
   await carrier.save();
 }
+
+export async function disconnect(){
+  await mongoose.disconnect()
+}

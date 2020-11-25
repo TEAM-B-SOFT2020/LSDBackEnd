@@ -13,6 +13,10 @@ beforeAll(async () => {
   await db.populate();
 });
 
+afterAll(async () => {
+  await db.disconnect()
+})
+
 describe("Succes scenarios", () => {
   test("Should return ICarrierDetail from iata", async () => {
     //arrange
