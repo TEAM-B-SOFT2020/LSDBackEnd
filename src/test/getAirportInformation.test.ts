@@ -8,7 +8,7 @@ const contract: Contract = new Contract();
 
 beforeAll(async () => {
     dotenv.config();
-    await db.connect(process.env.TEST_CONNECTION_STRING);
+    await db.connect(process.env.TEST_CONNECTION_STRING, true);
     await db.drop();
     await db.populate();
 });
