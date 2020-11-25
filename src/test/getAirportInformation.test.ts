@@ -22,7 +22,7 @@ describe("Success scenarios", () => {
         //arrange
         const iata: string = "CPH";
         const name: string = "Copenhagen Airport"
-        const timeZone: string = "da_DK"
+        const timeZone: string = "Europe/Copenhagen"
         const expected: IAirportDetail = { iata, name, timeZone }
 
         //act

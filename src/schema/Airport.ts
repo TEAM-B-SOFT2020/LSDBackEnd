@@ -7,7 +7,7 @@ export interface IAirport extends Document {
 }
 
 let schema = new Schema({
-    iata: { type: String, minlength: 3, maxlength: 3, required: true, unique: true },
+    iata: { type: String, match: /^[A-Z]{3}$/, required: true, unique: true },
     name: { type: String, required: true },
     timeZone: { type: String, required: true }
 });

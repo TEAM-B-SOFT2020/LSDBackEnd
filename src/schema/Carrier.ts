@@ -6,7 +6,7 @@ export interface ICarrier extends Document {
 }
 
 let schema = new Schema({
-  iata: { type: String, minlength: 2, maxlength: 2, required: true, unique: true },
+  iata: { type: String, match: /^[A-Z]{2}$/, required: true, unique: true },
   name: { type: String, required: true },
 });
 
