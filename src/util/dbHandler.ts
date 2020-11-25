@@ -21,7 +21,11 @@ export async function connect(connectionString: string | undefined, isTestConnec
       length: 10
     })
 
-    connectionString = `${connectionString}_${shortid.generate()}?retryWrites=true&w=majority`
+    const connectionStringSplit = connectionString?.split("?")
+    if (!connectionStringSplit) {
+      throw new Error("Couldn't split connection string")
+    }
+    connectionString = `${connectionStringSplit[0]}_${shortid.generate()}?${connectionStringSplit[1]}`
   }
 
   if (!connectionString) throw new Error("Invalid connection string");
