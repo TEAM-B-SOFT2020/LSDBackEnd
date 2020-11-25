@@ -11,12 +11,6 @@ const shortid = require("short-id")
 
 export async function connect(connectionString: string | undefined, isTestConnection: boolean = false) {
   if (isTestConnection) {
-
-    shortid.configure({
-      algorithm: 'sha256',
-      salt: Math.random
-    })
-
     shortid.configure({
       length: 10
     })
