@@ -1,12 +1,8 @@
-import ICarrierDetail from "contract/src/DTO/ICarrierDetail";
 import Contract from "../contract/Contract";
 import { InputError, NotFoundError } from "../error";
 import dotenv from "dotenv";
 import * as db from "../util/dbHandler";
-import { IAirport } from "../schema/Airport";
 import IAirportIdentifier from "contract/src/IAirportIdentifier";
-import IFlightBookingDetail from "contract/src/DTO/IFlightBookingDetail";
-import IFlightIdentifier from "contract/src/IFlightIdentifier";
 import IFlightSummary from "contract/src/DTO/IFlightSummary";
 
 const contract: Contract = new Contract();
@@ -14,7 +10,6 @@ const contract: Contract = new Contract();
 beforeAll(async () => {
     dotenv.config();
     await db.connect(process.env.TEST_CONNECTION_STRING, true);
-
 });
 
 beforeEach(async () => {

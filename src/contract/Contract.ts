@@ -16,6 +16,9 @@ import Route, { IRoute } from "../schema/Route";
 import Leg, { ILeg } from "../schema/Leg";
 import moment, { Moment } from "moment-timezone";
 import Booking, { IBooking } from "../schema/Booking";
+import IFlightBookingDetail from "contract/src/DTO/IFlightBookingDetail";
+import IPassenger from "contract/src/IPassenger";
+import IFlightPassenger from "contract/src/DTO/IFlightPassenger";
 
 export default class Contract implements IContract {
   async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
@@ -176,8 +179,62 @@ export default class Contract implements IContract {
   createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: number): Promise<IBookingDetail> {
     throw new Error("Method not implemented.");
   }
-  getBooking(id: IBookingIdentifier): Promise<IBookingDetail> {
-    throw new Error("Method not implemented.");
+  async getBooking(id: IBookingIdentifier): Promise<IBookingDetail> {
+    if (!id) {
+      throw new InputError("Please define a booking identifier")
+    }
+
+    const booking: IBooking | null = await Booking.findOne({ _id: id.id }).populate("bookingLegs.leg.route")
+
+    if (!booking) {
+      throw new NotFoundError(`No booking with id ${id.id} exists`)
+    }
+
+    const reducedPrice: number = booking.bookingLegs.reduce((prev, { leg, passengers }) => prev + (passengers.length * leg.route.seatPrice), 0)
+
+    const flightBookings: IFlightBookingDetail[] = booking.bookingLegs.map(({ leg, passengers }) => {
+
+      const flightPassengers: IFlightPassenger[] = passengers.map(({ person: { firstName, lastName }, pnr }) => ({ firstName, lastName, pnr }))
+
+      const { departureAirport, arrivalAirport } = leg.route
+      const departureAirportIdentifier: IAirportIdentifier = { iata: departureAirport.iata }
+      const arrivalAirportIdentifier: IAirportIdentifier = { iata: arrivalAirport.iata }
+
+
+      const carrier: ICarrier = leg.route.carrier
+      const carrierDetail: ICarrierDetail = { iata: carrier.iata, name: carrier.name }
+
+      const { week, year, route } = leg
+      const { weekday, departureSecondInDay, durationInSeconds, } = route
+
+      const baseTime: Moment = moment().tz(departureAirport.timeZone).year(year).week(week).day(weekday).second(departureSecondInDay);
+      const departureDate: number = baseTime.toDate().getTime()
+      baseTime.add(durationInSeconds, "seconds")
+      const arrivalDate: number = baseTime.toDate().getTime()
+
+      const flightCode: string = `${carrier.iata}${leg.paddedId}`
+
+      return {
+        passengers: flightPassengers,
+        departureAirport: departureAirportIdentifier,
+        arrivalAirport: arrivalAirportIdentifier,
+        carrier: carrierDetail,
+        departureDate,
+        arrivalDate,
+        flightCode,
+      }
+    })
+
+    const bookingDetail: IBookingDetail = {
+      creditCardNumber: Number.parseInt(booking.creditCardNumber),
+      flightBookings,
+      frequentFlyerId: booking.frequentFlyerID,
+      id: booking._id,
+      price: reducedPrice,
+
+    }
+
+    return bookingDetail
   }
   cancelBooking(id: IBookingIdentifier): Promise<void> {
     throw new Error("Method not implemented.");
