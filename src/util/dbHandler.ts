@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Carrier from "../schema/Carrier";
+import Airport from "../schema/Airport";
 
 export async function connect(connectionString: string | undefined) {
   if (!connectionString) throw new Error("Invalid connection string");
@@ -25,8 +26,12 @@ export async function drop() {
 export async function populate() {
   const carrier = new Carrier({ iata: "SK", name: "Scandinavian Airlines" });
   await carrier.save();
+
+  const airport = new Airport({ iata: "CPH", name: "Copenhagen Airport", timeZone: "da_DK" })
+  await airport.save()
+
 }
 
-export async function disconnect(){
+export async function disconnect() {
   await mongoose.disconnect()
 }

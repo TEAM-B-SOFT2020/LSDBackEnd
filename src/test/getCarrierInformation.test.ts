@@ -1,6 +1,6 @@
 import ICarrierDetail from "contract/src/DTO/ICarrierDetail";
 import Contract from "../contract/Contract";
-import { NotFoundError } from "../error";
+import { InputError, NotFoundError } from "../error";
 import dotenv from "dotenv";
 import * as db from "../util/dbHandler";
 
@@ -17,7 +17,7 @@ afterAll(async () => {
   await db.disconnect()
 })
 
-describe("Succes scenarios", () => {
+describe("Success scenarios", () => {
   test("Should return ICarrierDetail from iata", async () => {
     //arrange
     const iata: string = "SK";
@@ -44,5 +44,44 @@ describe("Fail scenarios", () => {
 
     //assert
     await expect(action).rejects.toThrow(NotFoundError);
+  });
+
+  test("Too short input - Should throw InputError", async () => {
+    //arrange
+    const iata: string = "X";
+
+    //act
+    const action = async () => {
+      await contract.getCarrierInformation(iata);
+    };
+
+    //assert
+    await expect(action).rejects.toThrow(InputError);
+  });
+
+  test("Too long input - Should throw InputError", async () => {
+    //arrange
+    const iata: string = "XXX";
+
+    //act
+    const action = async () => {
+      await contract.getCarrierInformation(iata);
+    };
+
+    //assert
+    await expect(action).rejects.toThrow(InputError);
+  });
+
+  test("Undefined input - Should throw InputError", async () => {
+    //arrange
+    const iata: any = undefined;
+
+    //act
+    const action = async () => {
+      await contract.getCarrierInformation(iata);
+    };
+
+    //assert
+    await expect(action).rejects.toThrow(InputError);
   });
 });
