@@ -14,6 +14,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await db.drop();
   await db.disconnect()
 })
 

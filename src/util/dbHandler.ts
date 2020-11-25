@@ -25,6 +25,7 @@ export async function connect(connectionString: string | undefined) {
 
 export async function drop() {
   const collections = await mongoose.connection.db.collections();
+  
   for (const collection of collections) {
     await collection.drop();
   }

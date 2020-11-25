@@ -23,7 +23,7 @@ let schema = new Schema({
     week: { type: Number, required: true, min: 0, max: 53 },
     year: { type: Number, required: true, min: 1970 }
 });
-
+ 
 schema.virtual("paddedId").get(function (this: { id: string }) {
     return _.padStart(this.id, 3, "0")
 })
