@@ -14,9 +14,13 @@ const contract: Contract = new Contract();
 beforeAll(async () => {
     dotenv.config();
     await db.connect(process.env.TEST_CONNECTION_STRING, true);
+
+});
+
+beforeEach(async () => {
     await db.drop();
     await db.populate();
-});
+})
 
 afterAll(async () => {
     await db.drop();
@@ -39,7 +43,6 @@ describe("Success scenarios", () => {
 
         //act
         const actual: IFlightSummary[] = await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
-        // console.log('actual', actual)
 
         //assert
         await expect(actual[0].departureAirport.iata).toBe(departureAirport.iata)
@@ -54,8 +57,97 @@ describe("Success scenarios", () => {
 
     })
 
+    test("Retrieve flight summary containing unchanged available seat amount", async () => {
+        //arrange
+        const departureAirport: IAirportIdentifier = { iata: "CPH" }
+        const arrivalAirport: IAirportIdentifier = { iata: "LHR" }
+        const depart: number = 1606774800000 //a monday
+
+        const expectedAvailableSeats: number = 366
+
+        //act
+        const actual: IFlightSummary[] = await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
+
+        //assert
+        await expect(actual[0].availableSeats).toBe(expectedAvailableSeats)
+    })
+
+    test("Get empty result on missing route at weekday", async () => {
+        //arrange
+        const departureAirport: IAirportIdentifier = { iata: "CPH" }
+        const arrivalAirport: IAirportIdentifier = { iata: "LHR" }
+        const depart: number = 1606998300000 //not a monday
+
+        const expectedLength: number = 0
+
+        //act
+        const actual: IFlightSummary[] = await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
+
+        //assert
+        await expect(actual.length).toBe(expectedLength)
+    })
+
+
+    test("Get new flight code on new leg creation", async () => {
+        //arrange
+        const departureAirport: IAirportIdentifier = { iata: "CPH" }
+        const arrivalAirport: IAirportIdentifier = { iata: "LHR" }
+        const depart: number = 1606774800000 //a monday
+
+        const expectedFlightCode: string = "SK002"
+
+        //act
+        const actual: IFlightSummary[] = await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
+
+        //assert
+        await expect(actual[0].flightCode).toBe(expectedFlightCode)
+    })
+
 });
 
 describe("Fail scenarios", () => {
+    test("Negative departure time should throw exception", async () => {
+        //arrange
+        const departureAirport: IAirportIdentifier = { iata: "CPH" }
+        const arrivalAirport: IAirportIdentifier = { iata: "LHR" }
+        const depart: number = -1
 
+        //act
+        const action = async () => {
+            await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
+        };
+
+        //assert
+        await expect(action).rejects.toThrow(InputError);
+    })
+
+    test("Non-existing departure airport", async () => {
+        //arrange
+        const departureAirport: IAirportIdentifier = { iata: "XXX" }
+        const arrivalAirport: IAirportIdentifier = { iata: "LHR" }
+        const depart: number = 1606998300000
+
+        //act
+        const action = async () => {
+            await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
+        };
+
+        //assert
+        await expect(action).rejects.toThrow(NotFoundError);
+    })
+
+    test("Non-existing arrival airport", async () => {
+        //arrange
+        const departureAirport: IAirportIdentifier = { iata: "CPH" }
+        const arrivalAirport: IAirportIdentifier = { iata: "XXX" }
+        const depart: number = 1606998300000
+
+        //act
+        const action = async () => {
+            await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
+        };
+
+        //assert
+        await expect(action).rejects.toThrow(NotFoundError);
+    })
 });
