@@ -92,7 +92,7 @@ export default class Contract implements IContract {
     const week: number = date.week()
     const year: number = date.year()
 
-    const airportRoutes: IRoute[] = await Route.find({ arrivalAirport, departureAirport, weekday })
+    const airportRoutes: IRoute[] = await Route.find({ arrivalAirport, departureAirport, weekday }).populate("carrier")
 
     let flightSummaries: IFlightSummary[] = []
 
@@ -122,30 +122,50 @@ export default class Contract implements IContract {
             leg
           }
         }
-      })
+      }).populate("bookingLegs.leg")
 
       let availableSeats = airportRoute.numberOfSeats
 
       for (const booking of bookings) {
-        let bookingLeg = booking.bookingLegs.find(bookingLeg => bookingLeg.leg._id === leg?._id)
+        let bookingLeg = booking.bookingLegs.find(bookingLeg => bookingLeg.leg._id.toString() === leg?._id.toString())
         availableSeats -= bookingLeg?.passengers.length || 0
       }
 
+      const carrierDetail: ICarrierDetail = {
+        iata: carrier.iata,
+        name: carrier.name
+      }
+
+      const departureAirportDetail: IAirportDetail = {
+        iata: departureAirport.iata,
+        name: departureAirport.name,
+        timeZone: departureAirport.timeZone
+      }
+
+      const arrivalAirportDetail: IAirportDetail = {
+        iata: arrivalAirport.iata,
+        name: arrivalAirport.name,
+        timeZone: arrivalAirport.timeZone
+      }
+
       const flightSummary: IFlightSummary = {
-        carrier,
+        carrier: carrierDetail,
 
         departureDate,
         arrivalDate,
 
-        departureAirport,
-        arrivalAirport,
+        departureAirport: departureAirportDetail,
+        arrivalAirport: arrivalAirportDetail,
 
         flightCode,
 
         availableSeats,
         seatPrice,
       }
-      flightSummaries.push(flightSummary)
+
+      if (availableSeats > 0) {
+        flightSummaries.push(flightSummary)
+      }
     }
 
     return flightSummaries

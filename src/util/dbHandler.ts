@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Carrier, { ICarrier } from "../schema/Carrier";
-import Airport from "../schema/Airport";
+import Airport, { IAirport } from "../schema/Airport";
 import { IPerson } from "../schema/Person";
 import { IPassenger } from "../schema/Passenger";
 import Leg, { ILeg } from "../schema/Leg";
@@ -48,13 +48,13 @@ export async function disconnect() {
 }
 
 export async function populate() {
-  const carrier1 = new Carrier({ iata: "SK", name: "Scandinavian Airlines" });
+  const carrier1: ICarrier = new Carrier({ iata: "SK", name: "Scandinavian Airlines" });
   await carrier1.save();
 
-  const airport1 = new Airport({ iata: "CPH", name: "Copenhagen Airport", timeZone: "Europe/Copenhagen" })
+  const airport1: IAirport = new Airport({ iata: "CPH", name: "Copenhagen Airport", timeZone: "Europe/Copenhagen" })
   await airport1.save()
 
-  const airport2 = new Airport({ iata: "LHR", name: "London Heathrow Airport", timeZone: "Europe/London" })
+  const airport2: IAirport = new Airport({ iata: "LHR", name: "London Heathrow Airport", timeZone: "Europe/London" })
   await airport2.save()
 
   const route1: IRoute = new Route({
@@ -116,13 +116,27 @@ export async function populate() {
     passengers: [passenger7, passenger8, passenger9]
   }
 
-  const booking: IBooking = new Booking({
-    bookingLegs: [bookingLeg1, bookingLeg2, bookingLeg3],
+  const booking1: IBooking = new Booking({
+    bookingLegs: [bookingLeg1],
     frequentFlyerID: "A12B34C",
     creditCardNumber: "1234567891234567"
   })
+  await booking1.save()
 
-  await booking.save()
+  const booking2: IBooking = new Booking({
+    bookingLegs: [bookingLeg2],
+    frequentFlyerID: "B12B34C",
+    creditCardNumber: "2234567891234567"
+  })
+  await booking2.save()
+
+  const booking3: IBooking = new Booking({
+    bookingLegs: [bookingLeg3],
+    frequentFlyerID: "C12B34C",
+    creditCardNumber: "3234567891234567"
+  })
+  await booking3.save()
+
 
 }
 

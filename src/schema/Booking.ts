@@ -9,8 +9,8 @@ export interface IBooking extends Document {
 
 let schema = new Schema({
     bookingLegs: { type: [BookingLeg], required: true, default: [] },
-    frequentFlyerID: { type: String, match: /^[A-Z0-9]{7}$/, required: true },
-    creditCardNumber: { type: String, match: /^[0-9]{16}$/, required: true }
+    creditCardNumber: { type: String, match: /^[0-9]{16}$/, required: true },
+    frequentFlyerID: { type: String, match: /^[A-Z0-9]{7}$/ },
 });
 
 const schemaName = "Booking";
