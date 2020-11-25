@@ -7,7 +7,6 @@ import Leg, { ILeg } from "../schema/Leg";
 import Route, { IRoute } from "../schema/Route";
 import { IBookingLeg } from "../schema/BookingLeg";
 import Booking, { IBooking } from "../schema/Booking";
-import autoIncrement from "mongoose-auto-increment"
 
 
 export async function connect(connectionString: string | undefined) {

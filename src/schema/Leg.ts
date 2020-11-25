@@ -18,8 +18,6 @@ export interface ILeg extends Document {
 }
 
 let schema = new Schema({
-    // id: { type: Number, required: true, unique: true, min: 0, max: 999 },
-
     route: { type: Schema.Types.ObjectId, ref: "Route", required: true },
 
     week: { type: Number, required: true, min: 0, max: 53 },
