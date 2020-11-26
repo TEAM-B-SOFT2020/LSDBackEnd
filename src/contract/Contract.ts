@@ -184,9 +184,22 @@ export default class Contract implements IContract {
       throw new InputError("Please define a booking identifier")
     }
 
-    const booking: IBooking | null = await Booking.findOne({ _id: id.id }).populate("bookingLegs.leg.route")
+    if (!id.id) {
+      throw new InputError("Please define id in your booking identifier")
+    }
+    let booking: IBooking | null = null
 
-    if (!booking) {
+    try {
+      booking = await Booking.findOne({ _id: id.id })
+    } catch (e) {}
+
+    if (booking) {
+      await booking.populate("bookingLegs.leg").execPopulate()
+      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.populate("route").execPopulate()))
+      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("carrier").execPopulate()))
+      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("arrivalAirport").execPopulate()))
+      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("departureAirport").execPopulate()))
+    } else {
       throw new NotFoundError(`No booking with id ${id.id} exists`)
     }
 
@@ -207,10 +220,12 @@ export default class Contract implements IContract {
       const { week, year, route } = leg
       const { weekday, departureSecondInDay, durationInSeconds, } = route
 
-      const baseTime: Moment = moment().tz(departureAirport.timeZone).year(year).week(week).day(weekday).second(departureSecondInDay);
-      const departureDate: number = baseTime.toDate().getTime()
+      let baseTime: Moment = moment().year(year).week(week).day(weekday).startOf("day").add(departureSecondInDay, "seconds")
+      baseTime = moment.tz(baseTime, departureAirport.timeZone)
+
+      const departureDate: number = baseTime.valueOf()
       baseTime.add(durationInSeconds, "seconds")
-      const arrivalDate: number = baseTime.toDate().getTime()
+      const arrivalDate: number = baseTime.valueOf()
 
       const flightCode: string = `${carrier.iata}${leg.paddedId}`
 
@@ -229,9 +244,8 @@ export default class Contract implements IContract {
       creditCardNumber: Number.parseInt(booking.creditCardNumber),
       flightBookings,
       frequentFlyerId: booking.frequentFlyerID,
-      id: booking._id,
+      id: String(booking._id),
       price: reducedPrice,
-
     }
 
     return bookingDetail

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { MongooseDocument } from "mongoose";
 import Carrier, { ICarrier } from "../schema/Carrier";
 import Airport, { IAirport } from "../schema/Airport";
 import { IPerson } from "../schema/Person";
@@ -23,12 +23,12 @@ export async function connect(connectionString: string | undefined, isTestConnec
   }
 
   if (!connectionString) throw new Error("Invalid connection string");
-  mongoose.connection.on("connected", function () {
-    console.log("Mongoose default connection open ");
-  });
-  mongoose.connection.on("disconnected", function () {
-    console.log("Mongoose connection closed ");
-  });
+  // mongoose.connection.on("connected", function () {
+  //   console.log("Mongoose default connection open ");
+  // });
+  // mongoose.connection.on("disconnected", function () {
+  //   console.log("Mongoose connection closed ");
+  // });
   mongoose.connection.on("error", function (err) {
     console.log("Mongoose default connection error: " + err);
   });
@@ -137,7 +137,15 @@ export async function populate() {
   })
   await booking3.save()
 
+  const bookingIds = [
+    booking1._id,
+    booking2._id,
+    booking3._id,
+  ]
 
+  return {
+    bookingIds
+  }
 }
 
 
