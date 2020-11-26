@@ -191,7 +191,7 @@ export default class Contract implements IContract {
 
     try {
       booking = await Booking.findOne({ _id: id.id })
-    } catch (e) {}
+    } catch (e) { }
 
     if (booking) {
       await booking.populate("bookingLegs.leg").execPopulate()
@@ -220,9 +220,7 @@ export default class Contract implements IContract {
       const { week, year, route } = leg
       const { weekday, departureSecondInDay, durationInSeconds, } = route
 
-      let baseTime: Moment = moment().year(year).week(week).day(weekday).startOf("day").add(departureSecondInDay, "seconds")
-      baseTime = moment.tz(baseTime, departureAirport.timeZone)
-
+      let baseTime: Moment = moment.tz(departureAirport.timeZone).year(year).week(week).day(weekday).startOf("day").add(departureSecondInDay, "seconds")
       const departureDate: number = baseTime.valueOf()
       baseTime.add(durationInSeconds, "seconds")
       const arrivalDate: number = baseTime.valueOf()
