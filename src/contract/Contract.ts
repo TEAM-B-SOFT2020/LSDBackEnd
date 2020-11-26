@@ -10,7 +10,9 @@ import IAirportIdentifier from "contract/src/IAirportIdentifier";
 import IBookingIdentifier from "contract/src/IBookingIdentifier";
 import IFlightIdentifier from "contract/src/IFlightIdentifier";
 import Carrier, { ICarrier } from "../schema/Carrier";
+import Reservation, { IReservation } from "../schema/Reservation";
 import Airport, { IAirport } from "../schema/Airport";
+import BookingLeg, { IBookingLeg } from "../schema/BookingLeg";
 import InputError from "../error/InputError";
 import Route, { IRoute } from "../schema/Route";
 import Leg, { ILeg } from "../schema/Leg";
@@ -19,6 +21,7 @@ import Booking, { IBooking } from "../schema/Booking";
 import IFlightBookingDetail from "contract/src/DTO/IFlightBookingDetail";
 import IPassenger from "contract/src/IPassenger";
 import IFlightPassenger from "contract/src/DTO/IFlightPassenger";
+import ReservationError from "../error/ReservationError";
 
 export default class Contract implements IContract {
   async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
@@ -134,6 +137,12 @@ export default class Contract implements IContract {
         availableSeats -= bookingLeg?.passengers.length || 0
       }
 
+      const reservations: IReservation[] = await Reservation.find({ leg })
+
+      for (const { amountOfSeats } of reservations) {
+        availableSeats -= amountOfSeats
+      }
+
       const carrierDetail: ICarrierDetail = {
         iata: carrier.iata,
         name: carrier.name
@@ -173,12 +182,69 @@ export default class Contract implements IContract {
 
     return flightSummaries
   }
-  reserveFlight(id: IFlightIdentifier, amountSeats: number): Promise<IReservationSummary> {
-    throw new Error("Method not implemented.");
+
+  async reserveFlight(id: IFlightIdentifier, amountSeats: number): Promise<IReservationSummary> {
+
+    if (!id) {
+      throw new InputError("Please define a flight identifier")
+    }
+
+    if (!amountSeats || amountSeats < 1 || amountSeats > 9) {
+      throw new InputError("Please define a valid seat amount between 1 and 9")
+    }
+
+    if (!/^[A-Z]{2}[0-9]{3}$/.test(id.flightCode)) {
+      throw new InputError("Flight code of flight identifier does not match the required format")
+    }
+
+    const legId: string = id.flightCode.slice(2);
+    const leg: ILeg | null = await Leg.findOne({ id: legId }).populate('route').exec()
+
+    if (!leg) {
+      throw new NotFoundError("Could not find flight")
+    }
+
+    const bookings: IBooking[] = await Booking.find({
+      bookingLegs: {
+        $elemMatch: {
+          leg
+        }
+      }
+    }).populate("bookingLegs.leg")
+
+    let availableSeats = leg.route.numberOfSeats
+
+    for (const booking of bookings) {
+      let bookingLeg = await booking.bookingLegs.find(bookingLeg => bookingLeg.leg._id.toString() === leg?._id.toString())
+      availableSeats -= bookingLeg?.passengers.length || 0
+    }
+
+    const reservations: IReservation[] = await Reservation.find({ leg })
+
+    for (const { amountOfSeats } of reservations) {
+      availableSeats -= amountOfSeats
+    }
+
+    if (availableSeats - amountSeats < 0) {
+      throw new ReservationError("There isn't enough seats for this reservation")
+    }
+
+    const reservation: IReservation = new Reservation({
+      leg,
+      amountOfSeats: amountSeats
+    })
+
+    await reservation.save()
+
+    const price: number = leg.route.seatPrice * amountSeats;
+    const reservationSummary: IReservationSummary = { id: String(reservation._id), price }
+    return reservationSummary
   }
+
   createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: number): Promise<IBookingDetail> {
     throw new Error("Method not implemented.");
   }
+
   async getBooking(id: IBookingIdentifier): Promise<IBookingDetail> {
     if (!id) {
       throw new InputError("Please define a booking identifier")

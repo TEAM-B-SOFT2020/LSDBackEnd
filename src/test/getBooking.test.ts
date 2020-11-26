@@ -45,7 +45,6 @@ describe("Success scenarios", () => {
 
         //act
         const bookingDetail: IBookingDetail = await contract.getBooking(bookingIdentifier)
-        console.log('bookingDetail', bookingDetail)
 
         //assert
         await expect(bookingDetail.flightBookings.length).toBe(expectedNumberOfFlightBookings)

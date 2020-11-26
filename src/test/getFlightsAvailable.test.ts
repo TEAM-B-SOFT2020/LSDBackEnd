@@ -33,7 +33,7 @@ describe("Success scenarios", () => {
         const expectedDepartureDate: number = 1606114800000
         const expectedArrivalDate: number = 1606120200000
         const expectedFlightCode: string = "SK001"
-        const expectedAvailableSeats: number = 357
+        const expectedAvailableSeats: number = 354
         const expectedSeatPrice: number = 510
 
         //act
@@ -89,7 +89,7 @@ describe("Success scenarios", () => {
         const arrivalAirport: IAirportIdentifier = { iata: "LHR" }
         const depart: number = 1606774800000 //a monday
 
-        const expectedFlightCode: string = "SK002"
+        const expectedFlightCode: string = "SK003"
 
         //act
         const actual: IFlightSummary[] = await contract.getFlightsAvailable(departureAirport, arrivalAirport, depart);
