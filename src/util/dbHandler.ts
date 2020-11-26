@@ -52,7 +52,7 @@ export async function disconnect() {
 export async function populate() {
   const carrier1: ICarrier = new Carrier({ iata: "SK", name: "Scandinavian Airlines" });
   await carrier1.save();
-  
+
   const carrier2: ICarrier = new Carrier({ iata: "FR", name: "Ryanair" });
   await carrier2.save();
 
@@ -126,7 +126,6 @@ export async function populate() {
   const passenger7: IPassenger = { pnr: "K7BS78", person: person7 }
   const passenger8: IPassenger = { pnr: "L8BS67", person: person8 }
   const passenger9: IPassenger = { pnr: "M9BS78", person: person9 }
-
   const passenger10: IPassenger = { pnr: "K7BS71", person: person7 }
   const passenger11: IPassenger = { pnr: "L8BS61", person: person8 }
   const passenger12: IPassenger = { pnr: "M9BS71", person: person9 }
@@ -182,10 +181,10 @@ export async function populate() {
   await booking4.save()
 
   const bookingIds = [
-    booking1._id,
-    booking2._id,
-    booking3._id,
-    booking4._id,
+    String(booking1._id),
+    String(booking2._id),
+    String(booking3._id),
+    String(booking4._id),
   ]
 
   const reservation1: IReservation = new Reservation({
@@ -202,8 +201,14 @@ export async function populate() {
 
   await reservation2.save()
 
+  const reservationIds = [
+    String(reservation1._id),
+    String(reservation2._id),
+  ]
+
   return {
-    bookingIds
+    bookingIds,
+    reservationIds
   }
 }
 

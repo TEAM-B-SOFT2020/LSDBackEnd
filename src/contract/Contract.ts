@@ -19,9 +19,11 @@ import Leg, { ILeg } from "../schema/Leg";
 import moment, { Moment } from "moment-timezone";
 import Booking, { IBooking } from "../schema/Booking";
 import IFlightBookingDetail from "contract/src/DTO/IFlightBookingDetail";
-import IPassenger from "contract/src/IPassenger";
+import Passenger, { IPassenger } from "../schema/Passenger";
+import CIPassenger from "contract/src/IPassenger";
 import IFlightPassenger from "contract/src/DTO/IFlightPassenger";
 import ReservationError from "../error/ReservationError";
+import createPNR from '../util/createPNR'
 
 export default class Contract implements IContract {
   async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
@@ -241,8 +243,77 @@ export default class Contract implements IContract {
     return reservationSummary
   }
 
-  createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: number): Promise<IBookingDetail> {
+  async createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: number): Promise<IBookingDetail> {
     throw new Error("Method not implemented.");
+
+    //   if (!reservationDetails) {
+    //     throw new NotFoundError("Please define valid reservations")
+    //   }
+
+    //   if (!creditCardNumber) {
+    //     throw new NotFoundError("Please define valid credit card")
+    //   }
+
+    //   const bookingLegs: IBookingLeg[] = []
+
+    //   for (const reservationDetail of reservationDetails) {
+    //     const id: string = reservationDetail.id;
+    //     const reservation: IReservation | null = await Reservation.findOne({ _id: id })
+
+    //     if (reservation) {
+    //       const leg: ILeg = reservation.leg;
+    //       const passengers: IPassenger[] = reservationDetail.passengers.map(passenger => ({ person: passenger, pnr: createPNR() }))
+    //       const bookingLeg: IBookingLeg = { leg, passengers }
+    //       bookingLegs.push(bookingLeg);
+    //     } 
+    //   }
+
+    //   const booking: IBooking = new Booking({ bookingLegs, creditCardNumber, frequentFlyerID: frequentFlyerNumber || null })
+
+    //   await booking.save();
+
+    //   // async function rec(): Promise<IBooking> {
+
+    //   //   for (const reservationDetail of reservationDetails) {
+    //   //     const id: string = reservationDetail.id;
+    //   //     const reservation: IReservation | null = await Reservation.findOne({ _id: id })
+
+    //   //     if (reservation) {
+    //   //       const leg: ILeg = reservation.leg;
+    //   //       const passengers: IPassenger[] = reservationDetail.passengers.map(passenger => ({ person: passenger, pnr: createPNR() }))
+    //   //       const bookingLeg: IBookingLeg = { leg, passengers }
+    //   //       bookingLegs.push(bookingLeg);
+    //   //     } 
+    //   //   }
+
+    //   //   const booking: IBooking = new Booking({ bookingLegs, creditCardNumber, frequentFlyerID: frequentFlyerNumber || null })
+
+    //   //   try {
+    //       // const booking: IBooking = await booking.save();
+    //       // return booking;
+    //   //   } catch (error) {
+    //   //     return rec()
+    //   //   }
+    //   // }
+
+    //   // const booking: IBooking = await rec()
+
+
+    // /*
+    // frequentFlyerId: string;
+    //   creditCardNumber: number;
+    //   price: number;
+    //   flightBookings: IFlightBookingDetail[];
+    //   */
+
+
+
+    //   const flightBookings: IFlightBookingDetail = booking.bookingLegs.map({ passengers } => {
+
+    //   })
+
+    //   const bookingDetail: IBookingDetail = { frequentFlyerId: String(frequentFlyerNumber) || "", creditCardNumber, price, flightBookings }
+    //   return bookingDetail;
   }
 
   async getBooking(id: IBookingIdentifier): Promise<IBookingDetail> {
@@ -273,7 +344,13 @@ export default class Contract implements IContract {
 
     const flightBookings: IFlightBookingDetail[] = booking.bookingLegs.map(({ leg, passengers }) => {
 
-      const flightPassengers: IFlightPassenger[] = passengers.map(({ person: { firstName, lastName }, pnr }) => ({ firstName, lastName, pnr }))
+      const flightPassengers: IFlightPassenger[] = passengers.map(({ person: { firstName, lastName }, pnr }) => {
+        if (!pnr) {
+          throw new Error("PNR is not defined")
+        }
+
+        return { firstName, lastName, pnr }
+      })
 
       const { departureAirport, arrivalAirport } = leg.route
       const departureAirportIdentifier: IAirportIdentifier = { iata: departureAirport.iata }
@@ -314,6 +391,7 @@ export default class Contract implements IContract {
 
     return bookingDetail
   }
+
   cancelBooking(id: IBookingIdentifier): Promise<void> {
     throw new Error("Method not implemented.");
   }

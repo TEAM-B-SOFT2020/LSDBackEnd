@@ -1,8 +1,6 @@
 import Contract from "../contract/Contract";
 import dotenv from "dotenv";
 import * as db from "../util/dbHandler";
-import IBookingIdentifier from "contract/src/IBookingIdentifier";
-import IBookingDetail from "contract/src/DTO/IBookingDetail";
 import { InputError, NotFoundError } from "../error";
 import IFlightIdentifier from "contract/src/IFlightIdentifier";
 import ReservationError from "../error/ReservationError";

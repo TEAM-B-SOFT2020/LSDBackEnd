@@ -43,18 +43,8 @@ async function RPCRequestHandler(req: http.IncomingMessage, res: http.ServerResp
     console.error(error.message);
 
     // handle errors
-    res.writeHead(500);
+    res.writeHead(error.status || 500);
     res.write(error.message);
-
-    /** ETO Structure
-     *
-     * https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-     * res.writeHead(500);
-     *
-     * 400 - Bad Request: InvalidInputError
-     * 404 - Not Found: NotFoundError
-     * 4xx - TBD : InconsistentLengthError
-     */
   }
 
   res.end();
