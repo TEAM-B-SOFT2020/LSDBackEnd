@@ -207,6 +207,7 @@ export default class Contract implements IContract {
     if (!leg) {
       throw new NotFoundError("Could not find flight")
     }
+    
 
     const bookings: IBooking[] = await Booking.find({
       bookingLegs: {
