@@ -352,39 +352,22 @@ export default class Contract implements IContract {
       booking = await Booking.findOne({ _id: id.id })
     } catch (e) { }
 
-    if (booking) {
-      await booking.populate("bookingLegs.leg").execPopulate()
-      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.populate("route").execPopulate()))
-      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("carrier").execPopulate()))
-      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("arrivalAirport").execPopulate()))
-      await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("departureAirport").execPopulate()))
-    } else {
-      throw new NotFoundError(`No booking with id ${id.id} exists`)
+    return await processBooking(booking)
+  }
+
+  async getBooking(passenger: IPassengerIdentifier): Promise<IBookingDetail> {
+    const booking: IBooking | null = await findBooking(passenger)
+
+    return await processBooking(booking)
+  }
+
+  async cancelBooking(passenger: IPassengerIdentifier): Promise<void> {
+    const booking: IBooking | null = await findBooking(passenger)
+    if (!booking) {
+      throw new NotFoundError("Could not find booking")
     }
-
-    const reducedPrice: number = calculateBookingPrice(booking)
-
-    const flightBookings: IFlightBookingDetail[] = convertLegsToFlights(booking.bookingLegs)
-
-    const bookingDetail: IBookingDetail = {
-      creditCardNumber: Number.parseInt(booking.creditCardNumber),
-      flightBookings,
-      frequentFlyerId: booking.frequentFlyerID,
-      id: String(booking._id),
-      price: reducedPrice,
-    }
-
-    return bookingDetail
+    await booking.deleteOne()
   }
-
-  getBooking(passenger: IPassengerIdentifier): Promise<IBookingDetail> {
-    throw new Error("Method not implemented.");
-  }
-
-  cancelBooking(passenger: IPassengerIdentifier): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-
 }
 
 function convertLegsToFlights(bookingLegs: IBookingLeg[]): IFlightBookingDetail[] {
@@ -430,4 +413,57 @@ function convertLegsToFlights(bookingLegs: IBookingLeg[]): IFlightBookingDetail[
 
 function calculateBookingPrice(booking: IBooking): number {
   return booking.bookingLegs.reduce((prev, { leg, passengers }) => prev + (passengers.length * leg.route.seatPrice), 0)
+}
+
+async function findBooking(passenger: IPassengerIdentifier): Promise<IBooking | null> {
+  if (!passenger) {
+    throw new InputError("Please define a passenger identifier")
+  }
+
+  if (!passenger.pnr) {
+    throw new InputError("Please define a pnr as a passenger identifier")
+  }
+
+  let booking: IBooking | null = null
+
+  try {
+    booking = await Booking.findOne({
+      bookingLegs: {
+        $elemMatch: {
+          passengers: {
+            $elemMatch: {
+              pnr: passenger.pnr
+            },
+          },
+        },
+      },
+    })
+  } catch (e) { }
+  return booking
+}
+
+async function processBooking(booking: IBooking | null): Promise<IBookingDetail> {
+  if (booking) {
+    await booking.populate("bookingLegs.leg").execPopulate()
+    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.populate("route").execPopulate()))
+    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("carrier").execPopulate()))
+    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("arrivalAirport").execPopulate()))
+    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("departureAirport").execPopulate()))
+  } else {
+    throw new NotFoundError(`Booking not found`)
+  }
+
+  const reducedPrice: number = calculateBookingPrice(booking)
+
+  const flightBookings: IFlightBookingDetail[] = convertLegsToFlights(booking.bookingLegs)
+
+  const bookingDetail: IBookingDetail = {
+    creditCardNumber: Number.parseInt(booking.creditCardNumber),
+    flightBookings,
+    frequentFlyerId: booking.frequentFlyerID,
+    id: String(booking._id),
+    price: reducedPrice,
+  }
+
+  return bookingDetail
 }
