@@ -25,13 +25,13 @@ afterAll(async () => {
 })
 
 describe("Success scenarios", () => {
-    test("Reserve flight with the last available seats", async () => {
+    test("Reserve flight with the last available seat", async () => {
         //arrange
         const flightCode: string = "FR002"
         const flightIdentifier: IFlightIdentifier = { flightCode }
-        const amountOfSeats: number = 2
+        const amountOfSeats: number = 1
 
-        const expectedPrice = 138
+        const expectedPrice = 69
 
         //act
         const reservation: IReservationSummary = await contract.reserveFlight(flightIdentifier, amountOfSeats)
