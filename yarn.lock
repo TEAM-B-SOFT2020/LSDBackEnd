@@ -2248,7 +2248,7 @@ content-type@~1.0.4:
 
 contract@TEAM-B-SOFT2020/LSDContract:
   version "1.0.0"
-  resolved "https://codeload.github.com/TEAM-B-SOFT2020/LSDContract/tar.gz/5219d0e7e235e10b44b3c41d46fb39bd04d54958"
+  resolved "https://codeload.github.com/TEAM-B-SOFT2020/LSDContract/tar.gz/ba1cdfeac40057354dc8624b4f6cf36326042205"
   dependencies:
     moment-timezone "^0.5.31"
     ts-node "^9.0.0"

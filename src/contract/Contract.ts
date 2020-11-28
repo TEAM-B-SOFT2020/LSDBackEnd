@@ -24,8 +24,10 @@ import CIPassenger from "contract/src/IPassenger";
 import IFlightPassenger from "contract/src/DTO/IFlightPassenger";
 import ReservationError from "../error/ReservationError";
 import createPNR from '../util/createPNR'
+import IPassengerIdentifier from "contract/src/IPassengerIdentifier";
 
 export default class Contract implements IContract {
+  
   async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
     if (!iata) {
       throw new InputError("Please define a IATA code")
@@ -243,7 +245,7 @@ export default class Contract implements IContract {
     return reservationSummary
   }
 
-  async createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: number): Promise<IBookingDetail> {
+  async createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: string): Promise<IBookingDetail> {
     throw new Error("Method not implemented.");
 
     //   if (!reservationDetails) {
@@ -316,7 +318,7 @@ export default class Contract implements IContract {
     //   return bookingDetail;
   }
 
-  async getBooking(id: IBookingIdentifier): Promise<IBookingDetail> {
+  async getBookingOnBookingId(id: IBookingIdentifier): Promise<IBookingDetail> {
     if (!id) {
       throw new InputError("Please define a booking identifier")
     }
@@ -392,7 +394,11 @@ export default class Contract implements IContract {
     return bookingDetail
   }
 
-  cancelBooking(id: IBookingIdentifier): Promise<void> {
+  getBooking(passenger: IPassengerIdentifier): Promise<IBookingDetail> {
+    throw new Error("Method not implemented.");
+  }
+
+  cancelBooking(passenger: IPassengerIdentifier): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

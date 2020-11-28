@@ -44,7 +44,7 @@ describe("Success scenarios", () => {
         const expectedPrice: number = 1020
 
         //act
-        const bookingDetail: IBookingDetail = await contract.getBooking(bookingIdentifier)
+        const bookingDetail: IBookingDetail = await contract.getBookingOnBookingId(bookingIdentifier)
 
         //assert
         await expect(bookingDetail.flightBookings.length).toBe(expectedNumberOfFlightBookings)
@@ -73,7 +73,7 @@ describe("Fail scenarios", () => {
 
         //act
         const action = async () => {
-            await contract.getBooking(bookingIdentifier);
+            await contract.getBookingOnBookingId(bookingIdentifier);
         };
 
         //assert
@@ -87,7 +87,7 @@ describe("Fail scenarios", () => {
 
         //act
         const action = async () => {
-            await contract.getBooking(bookingIdentifier);
+            await contract.getBookingOnBookingId(bookingIdentifier);
         };
 
         //assert
