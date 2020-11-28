@@ -25,9 +25,12 @@ import IFlightPassenger from "contract/src/DTO/IFlightPassenger";
 import ReservationError from "../error/ReservationError";
 import createPNR from '../util/createPNR'
 import IPassengerIdentifier from "contract/src/IPassengerIdentifier";
+import { startSession } from "../util/dbHandler";
+import BookingError from "../error/BookingError";
+import { create } from "lodash";
 
 export default class Contract implements IContract {
-  
+
   async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
     if (!iata) {
       throw new InputError("Please define a IATA code")
@@ -207,7 +210,7 @@ export default class Contract implements IContract {
     if (!leg) {
       throw new NotFoundError("Could not find flight")
     }
-    
+
 
     const bookings: IBooking[] = await Booking.find({
       bookingLegs: {
@@ -247,76 +250,92 @@ export default class Contract implements IContract {
   }
 
   async createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: string): Promise<IBookingDetail> {
-    throw new Error("Method not implemented.");
-
-    //   if (!reservationDetails) {
-    //     throw new NotFoundError("Please define valid reservations")
-    //   }
-
-    //   if (!creditCardNumber) {
-    //     throw new NotFoundError("Please define valid credit card")
-    //   }
-
-    //   const bookingLegs: IBookingLeg[] = []
-
-    //   for (const reservationDetail of reservationDetails) {
-    //     const id: string = reservationDetail.id;
-    //     const reservation: IReservation | null = await Reservation.findOne({ _id: id })
-
-    //     if (reservation) {
-    //       const leg: ILeg = reservation.leg;
-    //       const passengers: IPassenger[] = reservationDetail.passengers.map(passenger => ({ person: passenger, pnr: createPNR() }))
-    //       const bookingLeg: IBookingLeg = { leg, passengers }
-    //       bookingLegs.push(bookingLeg);
-    //     } 
-    //   }
-
-    //   const booking: IBooking = new Booking({ bookingLegs, creditCardNumber, frequentFlyerID: frequentFlyerNumber || null })
-
-    //   await booking.save();
-
-    //   // async function rec(): Promise<IBooking> {
-
-    //   //   for (const reservationDetail of reservationDetails) {
-    //   //     const id: string = reservationDetail.id;
-    //   //     const reservation: IReservation | null = await Reservation.findOne({ _id: id })
-
-    //   //     if (reservation) {
-    //   //       const leg: ILeg = reservation.leg;
-    //   //       const passengers: IPassenger[] = reservationDetail.passengers.map(passenger => ({ person: passenger, pnr: createPNR() }))
-    //   //       const bookingLeg: IBookingLeg = { leg, passengers }
-    //   //       bookingLegs.push(bookingLeg);
-    //   //     } 
-    //   //   }
-
-    //   //   const booking: IBooking = new Booking({ bookingLegs, creditCardNumber, frequentFlyerID: frequentFlyerNumber || null })
-
-    //   //   try {
-    //       // const booking: IBooking = await booking.save();
-    //       // return booking;
-    //   //   } catch (error) {
-    //   //     return rec()
-    //   //   }
-    //   // }
-
-    //   // const booking: IBooking = await rec()
 
 
-    // /*
-    // frequentFlyerId: string;
-    //   creditCardNumber: number;
-    //   price: number;
-    //   flightBookings: IFlightBookingDetail[];
-    //   */
+    if (!reservationDetails || reservationDetails.length === 0) {
+      throw new InputError("Please define valid reservations")
+    }
 
+    if (!creditCardNumber) {
+      throw new InputError("Please define valid credit card")
+    }
 
+    if (frequentFlyerNumber && frequentFlyerNumber.length !== 7) {
+      throw new InputError("Wrong length of given frequent flyer number")
+    }
 
-    //   const flightBookings: IFlightBookingDetail = booking.bookingLegs.map({ passengers } => {
+    if (creditCardNumber.toString().length !== 16) {
+      throw new InputError("Please define a credit card number with a valid length of 16")
+    }
 
-    //   })
+    let booking: IBooking | null = null
 
-    //   const bookingDetail: IBookingDetail = { frequentFlyerId: String(frequentFlyerNumber) || "", creditCardNumber, price, flightBookings }
-    //   return bookingDetail;
+    const session = await startSession()
+
+    try {
+      session.startTransaction()
+
+      const bookingLegs: IBookingLeg[] = []
+
+      for (const reservationDetail of reservationDetails) {
+        const id: string = reservationDetail.id;
+
+        try {
+          var reservation: IReservation | null = await Reservation
+            .findOne({ _id: id })
+            .populate("leg")
+            .exec()
+        } catch (e) {
+          throw new NotFoundError("Could not find reservation")
+        }
+
+        if (reservationDetail.passengers.length !== reservation?.amountOfSeats) {
+          throw new BookingError(`The length of a passenger list does not match the respective reserved amount of seats`)
+        }
+
+        await reservation?.leg.populate("route").execPopulate()
+        await reservation?.leg.route.populate("carrier").execPopulate()
+        await reservation?.leg.route.populate("departureAirport").execPopulate()
+        await reservation?.leg.route.populate("arrivalAirport").execPopulate()
+
+        if (reservation) {
+          const leg: ILeg = reservation.leg;
+
+          const pnr = createPNR()
+
+          const passengers: IPassenger[] = reservationDetail.passengers.map(passenger => ({ person: passenger, pnr }))
+
+          const bookingLeg: IBookingLeg = { leg, passengers }
+          bookingLegs.push(bookingLeg);
+          await reservation.deleteOne()
+        } else {
+          throw new NotFoundError("Could not find the reservation")
+        }
+      }
+
+      booking = new Booking({ bookingLegs, creditCardNumber, frequentFlyerID: frequentFlyerNumber || null })
+
+      await booking.save();
+      await session.commitTransaction()
+
+    } catch (e) {
+      await session.abortTransaction()
+      throw e
+    }
+
+    const flightBookings: IFlightBookingDetail[] = convertLegsToFlights(booking.bookingLegs)
+
+    const price: number = calculateBookingPrice(booking)
+
+    const bookingDetail: IBookingDetail = {
+      id: booking._id,
+      frequentFlyerId: frequentFlyerNumber || "",
+      creditCardNumber,
+      price,
+      flightBookings
+    }
+
+    return bookingDetail;
   }
 
   async getBookingOnBookingId(id: IBookingIdentifier): Promise<IBookingDetail> {
@@ -343,46 +362,9 @@ export default class Contract implements IContract {
       throw new NotFoundError(`No booking with id ${id.id} exists`)
     }
 
-    const reducedPrice: number = booking.bookingLegs.reduce((prev, { leg, passengers }) => prev + (passengers.length * leg.route.seatPrice), 0)
+    const reducedPrice: number = calculateBookingPrice(booking)
 
-    const flightBookings: IFlightBookingDetail[] = booking.bookingLegs.map(({ leg, passengers }) => {
-
-      const flightPassengers: IFlightPassenger[] = passengers.map(({ person: { firstName, lastName }, pnr }) => {
-        if (!pnr) {
-          throw new Error("PNR is not defined")
-        }
-
-        return { firstName, lastName, pnr }
-      })
-
-      const { departureAirport, arrivalAirport } = leg.route
-      const departureAirportIdentifier: IAirportIdentifier = { iata: departureAirport.iata }
-      const arrivalAirportIdentifier: IAirportIdentifier = { iata: arrivalAirport.iata }
-
-
-      const carrier: ICarrier = leg.route.carrier
-      const carrierDetail: ICarrierDetail = { iata: carrier.iata, name: carrier.name }
-
-      const { week, year, route } = leg
-      const { weekday, departureSecondInDay, durationInSeconds, } = route
-
-      let baseTime: Moment = moment.tz(departureAirport.timeZone).year(year).week(week).day(weekday).startOf("day").add(departureSecondInDay, "seconds")
-      const departureDate: number = baseTime.valueOf()
-      baseTime.add(durationInSeconds, "seconds")
-      const arrivalDate: number = baseTime.valueOf()
-
-      const flightCode: string = `${carrier.iata}${leg.paddedId}`
-
-      return {
-        passengers: flightPassengers,
-        departureAirport: departureAirportIdentifier,
-        arrivalAirport: arrivalAirportIdentifier,
-        carrier: carrierDetail,
-        departureDate,
-        arrivalDate,
-        flightCode,
-      }
-    })
+    const flightBookings: IFlightBookingDetail[] = convertLegsToFlights(booking.bookingLegs)
 
     const bookingDetail: IBookingDetail = {
       creditCardNumber: Number.parseInt(booking.creditCardNumber),
@@ -402,4 +384,50 @@ export default class Contract implements IContract {
   cancelBooking(passenger: IPassengerIdentifier): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+}
+
+function convertLegsToFlights(bookingLegs: IBookingLeg[]): IFlightBookingDetail[] {
+  return bookingLegs.map(({ leg, passengers }) => {
+
+    const flightPassengers: IFlightPassenger[] = passengers.map(({ person: { firstName, lastName }, pnr }) => {
+      if (!pnr) {
+        throw new Error("PNR is not defined")
+      }
+
+      return { firstName, lastName, pnr }
+    })
+
+    const { departureAirport, arrivalAirport } = leg.route
+    const departureAirportIdentifier: IAirportIdentifier = { iata: departureAirport.iata }
+    const arrivalAirportIdentifier: IAirportIdentifier = { iata: arrivalAirport.iata }
+
+
+    const carrier: ICarrier = leg.route.carrier
+    const carrierDetail: ICarrierDetail = { iata: carrier.iata, name: carrier.name }
+
+    const { week, year, route } = leg
+    const { weekday, departureSecondInDay, durationInSeconds, } = route
+
+    let baseTime: Moment = moment.tz(departureAirport.timeZone).year(year).week(week).day(weekday).startOf("day").add(departureSecondInDay, "seconds")
+    const departureDate: number = baseTime.valueOf()
+    baseTime.add(durationInSeconds, "seconds")
+    const arrivalDate: number = baseTime.valueOf()
+
+    const flightCode: string = `${carrier.iata}${leg.paddedId}`
+
+    return {
+      passengers: flightPassengers,
+      departureAirport: departureAirportIdentifier,
+      arrivalAirport: arrivalAirportIdentifier,
+      carrier: carrierDetail,
+      departureDate,
+      arrivalDate,
+      flightCode,
+    }
+  })
+}
+
+function calculateBookingPrice(booking: IBooking): number {
+  return booking.bookingLegs.reduce((prev, { leg, passengers }) => prev + (passengers.length * leg.route.seatPrice), 0)
 }

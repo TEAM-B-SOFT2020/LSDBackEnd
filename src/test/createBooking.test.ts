@@ -34,8 +34,9 @@ describe("Success scenarios", () => {
     test("Integrity of booking creation", async () => {
         //arrange
         const id: string = populatedValues.reservationIds[1] //defined with amountOfSeats: 1
-        const passenger: IPassenger = { firstName: "Kurt", lastName: "Wonnegut" }
-        const passengers: IPassenger[] = [passenger]
+        const passenger1: IPassenger = { firstName: "Kurt", lastName: "Wonnegut" }
+        const passenger2: IPassenger = { firstName: "Yvonne", lastName: "Wonnegut" }
+        const passengers: IPassenger[] = [passenger1, passenger2]
         const reservation: IReservationDetail = {
             id,
             passengers
@@ -44,10 +45,10 @@ describe("Success scenarios", () => {
         const creditCardNumber: number = 1234567891234567
         const frequentFlyerNumber: string = "1234567"
 
-        const expectedPrice: number = 69
+        const expectedPrice: number = 138
         const expectedFlightCode: string = "FR002"
-        const expectedDepartureDate: number = 1606806000000
-        const expectedArrivalDate: number = 1606811400000
+        const expectedDepartureDate: number = 1606809600000
+        const expectedArrivalDate: number = 1606815000000
         const expectedCarrierIATA: string = "FR"
         const expectedCarrierName: string = "Ryanair"
         const departureAirport: IAirportIdentifier = { iata: "LHR" }
@@ -65,13 +66,15 @@ describe("Success scenarios", () => {
         await expect(booking.flightBookings[0].passengers.length).toBe(passengers.length)
         await expect(booking.flightBookings[0].passengers[0].firstName).toBe(passengers[0].firstName)
         await expect(booking.flightBookings[0].passengers[0].lastName).toBe(passengers[0].lastName)
+        await expect(booking.flightBookings[0].passengers[1].firstName).toBe(passengers[1].firstName)
+        await expect(booking.flightBookings[0].passengers[1].lastName).toBe(passengers[1].lastName)
         await expect(booking.flightBookings[0].flightCode).toBe(expectedFlightCode)
         await expect(booking.flightBookings[0].departureDate).toBe(expectedDepartureDate)
         await expect(booking.flightBookings[0].arrivalDate).toBe(expectedArrivalDate)
         await expect(booking.flightBookings[0].carrier.iata).toBe(expectedCarrierIATA)
         await expect(booking.flightBookings[0].carrier.name).toBe(expectedCarrierName)
-        await expect(booking.flightBookings[0].departureAirport).toBe(departureAirport)
-        await expect(booking.flightBookings[0].arrivalAirport).toBe(arrivalAirport)
+        await expect(booking.flightBookings[0].departureAirport.iata).toBe(departureAirport.iata)
+        await expect(booking.flightBookings[0].arrivalAirport.iata).toBe(arrivalAirport.iata)
     })
 
     test("Integrity of booking creation with multiple reservations", async () => {
@@ -82,9 +85,10 @@ describe("Success scenarios", () => {
         const passenger2: IPassenger = { firstName: "Yvonne", lastName: "Wonnegut" }
         const passenger3: IPassenger = { firstName: "Morten", lastName: "Wonnegut" }
         const passenger4: IPassenger = { firstName: "Sean", lastName: "Poul" }
+        const passenger5: IPassenger = { firstName: "Henning", lastName: "Poul" }
 
         const passengers1: IPassenger[] = [passenger1, passenger2, passenger3]
-        const passengers2: IPassenger[] = [passenger4]
+        const passengers2: IPassenger[] = [passenger4, passenger5]
 
         const reservation1: IReservationDetail = {
             id: id1,
@@ -100,7 +104,7 @@ describe("Success scenarios", () => {
         const creditCardNumber: number = 1234567891234567
         const frequentFlyerNumber: string = "1234567"
 
-        const expectedPrice: number = 1599
+        const expectedPrice: number = 1668
 
         //act
         const booking: IBookingDetail = await contract.createBooking(reservations, creditCardNumber, frequentFlyerNumber)
@@ -151,7 +155,7 @@ describe("Fail scenarios", () => {
         await expect(action).rejects.toThrow(NotFoundError)
     })
 
-    test("Using empty passenger list ", async () => {
+    test("Using empty passenger list", async () => {
         //arrange
         const id: string = populatedValues.reservationIds[1] //defined with amountOfSeats: 1
         const reservation: IReservationDetail = {
@@ -168,7 +172,7 @@ describe("Fail scenarios", () => {
         }
 
         //assert
-        await expect(action).rejects.toThrow(InputError)
+        await expect(action).rejects.toThrow(BookingError)
     })
 
     test("Using too many passengers", async () => {
@@ -176,10 +180,11 @@ describe("Fail scenarios", () => {
         const id: string = populatedValues.reservationIds[1] //defined with amountOfSeats: 1
         const passenger1: IPassenger = { firstName: "Kurt", lastName: "Wonnegut" }
         const passenger2: IPassenger = { firstName: "Yvonne", lastName: "Wonnegut" }
+        const passenger3: IPassenger = { firstName: "Jens", lastName: "Wonnegut" }
 
         const reservation: IReservationDetail = {
             id,
-            passengers: [passenger1, passenger2]
+            passengers: [passenger1, passenger2, passenger3]
         }
         const creditCardNumber: number = 1234567891234567
         const frequentFlyerNumber: string = "1234567"
@@ -219,10 +224,11 @@ describe("Fail scenarios", () => {
         //arrange
         const id: string = populatedValues.reservationIds[1] //defined with amountOfSeats: 1
         const passenger1: IPassenger = { firstName: "Kurt", lastName: "Wonnegut" }
+        const passenger2: IPassenger = { firstName: "Yvonne", lastName: "Wonnegut" }
 
         const reservation: IReservationDetail = {
             id,
-            passengers: [passenger1]
+            passengers: [passenger1, passenger2]
         }
         const creditCardNumber: number = 123456789123456
         const frequentFlyerNumber: string = "1234567"
@@ -240,10 +246,11 @@ describe("Fail scenarios", () => {
         //arrange
         const id: string = populatedValues.reservationIds[1] //defined with amountOfSeats: 1
         const passenger1: IPassenger = { firstName: "Kurt", lastName: "Wonnegut" }
+        const passenger2: IPassenger = { firstName: "Yvonne", lastName: "Wonnegut" }
 
         const reservation: IReservationDetail = {
             id,
-            passengers: [passenger1]
+            passengers: [passenger1, passenger2]
         }
         const creditCardNumber: number = 12345678912345678
         const frequentFlyerNumber: string = "1234567"
@@ -261,10 +268,12 @@ describe("Fail scenarios", () => {
         //arrange
         const id: string = populatedValues.reservationIds[1] //defined with amountOfSeats: 1
         const passenger1: IPassenger = { firstName: "Kurt", lastName: "Wonnegut" }
+        const passenger2: IPassenger = { firstName: "Yvonne", lastName: "Wonnegut" }
+
 
         const reservation: IReservationDetail = {
             id,
-            passengers: [passenger1]
+            passengers: [passenger1, passenger2]
         }
         const creditCardNumber: number = 1234567891234567
         const frequentFlyerNumber: string = "123456"
@@ -282,10 +291,11 @@ describe("Fail scenarios", () => {
         //arrange
         const id: string = populatedValues.reservationIds[1] //defined with amountOfSeats: 1
         const passenger1: IPassenger = { firstName: "Kurt", lastName: "Wonnegut" }
+        const passenger2: IPassenger = { firstName: "Yvonne", lastName: "Wonnegut" }
 
         const reservation: IReservationDetail = {
             id,
-            passengers: [passenger1]
+            passengers: [passenger1, passenger2]
         }
         const creditCardNumber: number = 1234567891234567
         const frequentFlyerNumber: string = "12345678"

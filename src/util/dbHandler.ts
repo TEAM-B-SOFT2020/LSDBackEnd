@@ -49,6 +49,10 @@ export async function disconnect() {
   await mongoose.disconnect()
 }
 
+export async function startSession() {
+  return await mongoose.startSession()
+}
+
 export async function populate() {
   const carrier1: ICarrier = new Carrier({ iata: "SK", name: "Scandinavian Airlines" });
   await carrier1.save();
@@ -196,7 +200,7 @@ export async function populate() {
 
   const reservation2: IReservation = new Reservation({
     leg: leg2,
-    amountOfSeats: 1
+    amountOfSeats: 2
   })
 
   await reservation2.save()

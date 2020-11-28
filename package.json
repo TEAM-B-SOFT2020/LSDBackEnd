@@ -37,7 +37,7 @@
 	"scripts": {
 		"start": "yarn ts-node src/index.ts",
 		"ctest": "clear && yarn test",
-		"test": "jest --detectOpenHandles",
+		"test": "jest --detectOpenHandles --testTimeout=60000",
 		"git": "git add -A && git commit -m \"Quick Fix Commit\" && git push"
 	}
 }
