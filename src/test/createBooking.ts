@@ -42,7 +42,7 @@ describe("Success scenarios", () => {
         }
         const reservations: IReservationDetail[] = [reservation]
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
         const expectedPrice: number = 69
         const expectedFlightCode: string = "FR002"
@@ -98,7 +98,7 @@ describe("Success scenarios", () => {
 
         const reservations: IReservationDetail[] = [reservation1, reservation2]
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
         const expectedPrice: number = 1599
 
@@ -118,7 +118,7 @@ describe("Fail scenarios", () => {
     test("Using empty reservation list", async () => {
         //arrange
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
         //act
         const action = async () => {
@@ -139,7 +139,7 @@ describe("Fail scenarios", () => {
             passengers: [passenger]
         }
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
 
         //act
@@ -159,7 +159,7 @@ describe("Fail scenarios", () => {
             passengers: []
         }
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
 
         //act
@@ -182,7 +182,7 @@ describe("Fail scenarios", () => {
             passengers: [passenger1, passenger2]
         }
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
         //act
         const action = async () => {
@@ -204,7 +204,7 @@ describe("Fail scenarios", () => {
             passengers: [passenger1, passenger2]
         }
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
         //act
         const action = async () => {
@@ -225,7 +225,7 @@ describe("Fail scenarios", () => {
             passengers: [passenger1]
         }
         const creditCardNumber: number = 123456789123456
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
         //act
         const action = async () => {
@@ -246,7 +246,7 @@ describe("Fail scenarios", () => {
             passengers: [passenger1]
         }
         const creditCardNumber: number = 12345678912345678
-        const frequentFlyerNumber: number = 1234567
+        const frequentFlyerNumber: string = "1234567"
 
         //act
         const action = async () => {
@@ -267,7 +267,7 @@ describe("Fail scenarios", () => {
             passengers: [passenger1]
         }
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 123456
+        const frequentFlyerNumber: string = "123456"
 
         //act
         const action = async () => {
@@ -288,7 +288,7 @@ describe("Fail scenarios", () => {
             passengers: [passenger1]
         }
         const creditCardNumber: number = 1234567891234567
-        const frequentFlyerNumber: number = 12345678
+        const frequentFlyerNumber: string = "12345678"
 
         //act
         const action = async () => {
