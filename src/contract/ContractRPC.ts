@@ -10,17 +10,20 @@ import IBookingIdentifier from "contract/src/IBookingIdentifier";
 import IReservationDetail from "contract/src/DTO/IReservationDetail";
 import IFlightIdentifier from "contract/src/IFlightIdentifier";
 import IAirportIdentifier from "contract/src/IAirportIdentifier";
+import IPassengerIdentifier from "contract/src/IPassengerIdentifier";
 
 // ...
 const contract: IContract = new Contract();
 
 const api: RPCFunctions<IContract, { lang: string }> = {
-  cancelBooking: (id: IBookingIdentifier) => async () => await contract.cancelBooking(id),
+  cancelBooking: (passenger: IPassengerIdentifier) => async () => await contract.cancelBooking(passenger),
 
-  createBooking: (reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: number) => async () =>
+  createBooking: (reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: string) => async () =>
     await contract.createBooking(reservationDetails, creditCardNumber, frequentFlyerNumber),
 
-  getBooking: (id: IBookingIdentifier) => async () => await contract.getBooking(id),
+  getBooking: (passenger: IPassengerIdentifier) => async () => await contract.getBooking(passenger),
+  
+  getBookingOnBookingId: (id: IBookingIdentifier) => async () => await contract.getBookingOnBookingId(id),
 
   getAirportInformation: (iata: string) => async () => await contract.getAirportInformation(iata),
 
