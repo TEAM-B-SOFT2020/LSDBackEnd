@@ -1,19 +1,20 @@
 // libraries
-import * as http from "http";
-import { createServer, RPCFunctions } from "@node-rpc/server";
-import { jsonDeserializer as deserializer } from "@node-rpc/server/dist/deserializers/jsonDeserializer";
+import * as http from "http"
+import { createServer, RPCFunctions } from "@node-rpc/server"
+import { jsonDeserializer as deserializer } from "@node-rpc/server/dist/deserializers/jsonDeserializer"
 
 // classes, interfaces & functions
-import IContract from "contract";
-import Contract from "./Contract";
-import IBookingIdentifier from "contract/src/IBookingIdentifier";
-import IReservationDetail from "contract/src/DTO/IReservationDetail";
-import IFlightIdentifier from "contract/src/IFlightIdentifier";
-import IAirportIdentifier from "contract/src/IAirportIdentifier";
-import IPassengerIdentifier from "contract/src/IPassengerIdentifier";
+import IContract from "contract"
+import Contract from "./Contract"
+import IBookingIdentifier from "contract/src/IBookingIdentifier"
+import IReservationDetail from "contract/src/DTO/IReservationDetail"
+import IFlightIdentifier from "contract/src/IFlightIdentifier"
+import IAirportIdentifier from "contract/src/IAirportIdentifier"
+import IPassengerIdentifier from "contract/src/IPassengerIdentifier"
+import logger from "../util/logger"
 
 // ...
-const contract: IContract = new Contract();
+const contract: IContract = new Contract()
 
 const api: RPCFunctions<IContract, { lang: string }> = {
   cancelBooking: (passenger: IPassengerIdentifier) => async () => await contract.cancelBooking(passenger),
@@ -22,7 +23,7 @@ const api: RPCFunctions<IContract, { lang: string }> = {
     await contract.createBooking(reservationDetails, creditCardNumber, frequentFlyerNumber),
 
   getBooking: (passenger: IPassengerIdentifier) => async () => await contract.getBooking(passenger),
-  
+
   getBookingOnBookingId: (id: IBookingIdentifier) => async () => await contract.getBookingOnBookingId(id),
 
   getAirportInformation: (iata: string) => async () => await contract.getAirportInformation(iata),
@@ -33,24 +34,27 @@ const api: RPCFunctions<IContract, { lang: string }> = {
 
   getFlightsAvailable: (departure: IAirportIdentifier, arrival: IAirportIdentifier, depart: number) => async () =>
     await contract.getFlightsAvailable(departure, arrival, depart),
-};
+}
 
-const RPCServer = createServer({ api, deserializer });
+const RPCServer = createServer({ api, deserializer })
 
 async function RPCRequestHandler(req: http.IncomingMessage, res: http.ServerResponse) {
   try {
-    const result = await RPCServer.handleAPIRequest(req, { lang: "en" });
-    const json: string = String(JSON.stringify(result));
-    res.write(json);
+    logger.info(`Request from ip: ${req.connection.remoteAddress} - Requested RPC procedure: ${req.headers["x-rpc-procedure"]}`)
+
+    const result = await RPCServer.handleAPIRequest(req, { lang: "en" })
+    const json: string = String(JSON.stringify(result))
+
+    res.write(json)
   } catch (error: any) {
-    console.error(error.message);
+    logger.error(error)
 
     // handle errors
-    res.writeHead(error.status || 500);
-    res.write(error.message);
+    res.writeHead(error.status || 500)
+    res.write(error.message)
   }
 
-  res.end();
+  res.end()
 }
 
-export default RPCRequestHandler;
+export default RPCRequestHandler

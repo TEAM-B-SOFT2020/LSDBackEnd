@@ -1,36 +1,33 @@
-import IContract from "contract";
-import IAirportDetail from "contract/src/DTO/IAirportDetail";
-import IBookingDetail from "contract/src/DTO/IBookingDetail";
-import ICarrierDetail from "contract/src/DTO/ICarrierDetail";
-import IFlightSummary from "contract/src/DTO/IFlightSummary";
-import IReservationDetail from "contract/src/DTO/IReservationDetail";
-import IReservationSummary from "contract/src/DTO/IReservationSummary";
-import { NotFoundError } from "../error";
-import IAirportIdentifier from "contract/src/IAirportIdentifier";
-import IBookingIdentifier from "contract/src/IBookingIdentifier";
-import IFlightIdentifier from "contract/src/IFlightIdentifier";
-import Carrier, { ICarrier } from "../schema/Carrier";
-import Reservation, { IReservation } from "../schema/Reservation";
-import Airport, { IAirport } from "../schema/Airport";
-import BookingLeg, { IBookingLeg } from "../schema/BookingLeg";
-import InputError from "../error/InputError";
-import Route, { IRoute } from "../schema/Route";
-import Leg, { ILeg } from "../schema/Leg";
-import moment, { Moment } from "moment-timezone";
-import Booking, { IBooking } from "../schema/Booking";
-import IFlightBookingDetail from "contract/src/DTO/IFlightBookingDetail";
-import Passenger, { IPassenger } from "../schema/Passenger";
-import CIPassenger from "contract/src/IPassenger";
-import IFlightPassenger from "contract/src/DTO/IFlightPassenger";
-import ReservationError from "../error/ReservationError";
-import createPNR from '../util/createPNR'
-import IPassengerIdentifier from "contract/src/IPassengerIdentifier";
-import { startSession } from "../util/dbHandler";
-import BookingError from "../error/BookingError";
-import { create } from "lodash";
+import IContract from "contract"
+import IAirportDetail from "contract/src/DTO/IAirportDetail"
+import IBookingDetail from "contract/src/DTO/IBookingDetail"
+import ICarrierDetail from "contract/src/DTO/ICarrierDetail"
+import IFlightSummary from "contract/src/DTO/IFlightSummary"
+import IReservationDetail from "contract/src/DTO/IReservationDetail"
+import IReservationSummary from "contract/src/DTO/IReservationSummary"
+import { NotFoundError } from "../error"
+import IAirportIdentifier from "contract/src/IAirportIdentifier"
+import IBookingIdentifier from "contract/src/IBookingIdentifier"
+import IFlightIdentifier from "contract/src/IFlightIdentifier"
+import Carrier, { ICarrier } from "../schema/Carrier"
+import Reservation, { IReservation } from "../schema/Reservation"
+import Airport, { IAirport } from "../schema/Airport"
+import { IBookingLeg } from "../schema/BookingLeg"
+import InputError from "../error/InputError"
+import Route, { IRoute } from "../schema/Route"
+import Leg, { ILeg } from "../schema/Leg"
+import moment, { Moment } from "moment-timezone"
+import Booking, { IBooking } from "../schema/Booking"
+import IFlightBookingDetail from "contract/src/DTO/IFlightBookingDetail"
+import { IPassenger } from "../schema/Passenger"
+import IFlightPassenger from "contract/src/DTO/IFlightPassenger"
+import ReservationError from "../error/ReservationError"
+import createPNR from "../util/createPNR"
+import IPassengerIdentifier from "contract/src/IPassengerIdentifier"
+import { startSession } from "../util/dbHandler"
+import BookingError from "../error/BookingError"
 
 export default class Contract implements IContract {
-
   async getCarrierInformation(iata: string): Promise<ICarrierDetail> {
     if (!iata) {
       throw new InputError("Please define a IATA code")
@@ -40,12 +37,12 @@ export default class Contract implements IContract {
       throw new InputError("IATA must be 2 characters long")
     }
 
-    const carrier: ICarrier | null = await Carrier.findOne({ iata });
+    const carrier: ICarrier | null = await Carrier.findOne({ iata })
     if (!carrier) {
-      throw new NotFoundError(`Could not find Carrier Information for IATA: ${iata}`);
+      throw new NotFoundError(`Could not find Carrier Information for IATA: ${iata}`)
     }
-    const carrierDetail: ICarrierDetail = { iata: carrier.iata, name: carrier.name };
-    return carrierDetail;
+    const carrierDetail: ICarrierDetail = { iata: carrier.iata, name: carrier.name }
+    return carrierDetail
   }
 
   async getAirportInformation(iata: string): Promise<IAirportDetail> {
@@ -65,7 +62,7 @@ export default class Contract implements IContract {
     const airportDetail: IAirportDetail = {
       iata,
       name,
-      timeZone
+      timeZone,
     }
     return airportDetail
   }
@@ -132,15 +129,15 @@ export default class Contract implements IContract {
       const bookings: IBooking[] = await Booking.find({
         bookingLegs: {
           $elemMatch: {
-            leg
-          }
-        }
+            leg,
+          },
+        },
       }).populate("bookingLegs.leg")
 
       let availableSeats = airportRoute.numberOfSeats
 
       for (const booking of bookings) {
-        let bookingLeg = booking.bookingLegs.find(bookingLeg => bookingLeg.leg._id.toString() === leg?._id.toString())
+        let bookingLeg = booking.bookingLegs.find((bookingLeg) => bookingLeg.leg._id.toString() === leg?._id.toString())
         availableSeats -= bookingLeg?.passengers.length || 0
       }
 
@@ -152,19 +149,19 @@ export default class Contract implements IContract {
 
       const carrierDetail: ICarrierDetail = {
         iata: carrier.iata,
-        name: carrier.name
+        name: carrier.name,
       }
 
       const departureAirportDetail: IAirportDetail = {
         iata: departureAirport.iata,
         name: departureAirport.name,
-        timeZone: departureAirport.timeZone
+        timeZone: departureAirport.timeZone,
       }
 
       const arrivalAirportDetail: IAirportDetail = {
         iata: arrivalAirport.iata,
         name: arrivalAirport.name,
-        timeZone: arrivalAirport.timeZone
+        timeZone: arrivalAirport.timeZone,
       }
 
       const flightSummary: IFlightSummary = {
@@ -191,7 +188,6 @@ export default class Contract implements IContract {
   }
 
   async reserveFlight(id: IFlightIdentifier, amountSeats: number): Promise<IReservationSummary> {
-
     if (!id) {
       throw new InputError("Please define a flight identifier")
     }
@@ -204,26 +200,25 @@ export default class Contract implements IContract {
       throw new InputError("Flight code of flight identifier does not match the required format")
     }
 
-    const legId: string = id.flightCode.slice(2);
-    const leg: ILeg | null = await Leg.findOne({ id: legId }).populate('route').exec()
+    const legId: string = id.flightCode.slice(2)
+    const leg: ILeg | null = await Leg.findOne({ id: legId }).populate("route").exec()
 
     if (!leg) {
       throw new NotFoundError("Could not find flight")
     }
 
-
     const bookings: IBooking[] = await Booking.find({
       bookingLegs: {
         $elemMatch: {
-          leg
-        }
-      }
+          leg,
+        },
+      },
     }).populate("bookingLegs.leg")
 
     let availableSeats = leg.route.numberOfSeats
 
     for (const booking of bookings) {
-      let bookingLeg = await booking.bookingLegs.find(bookingLeg => bookingLeg.leg._id.toString() === leg?._id.toString())
+      let bookingLeg = await booking.bookingLegs.find((bookingLeg) => bookingLeg.leg._id.toString() === leg?._id.toString())
       availableSeats -= bookingLeg?.passengers.length || 0
     }
 
@@ -239,19 +234,17 @@ export default class Contract implements IContract {
 
     const reservation: IReservation = new Reservation({
       leg,
-      amountOfSeats: amountSeats
+      amountOfSeats: amountSeats,
     })
 
     await reservation.save()
 
-    const price: number = leg.route.seatPrice * amountSeats;
+    const price: number = leg.route.seatPrice * amountSeats
     const reservationSummary: IReservationSummary = { id: String(reservation._id), price }
     return reservationSummary
   }
 
   async createBooking(reservationDetails: IReservationDetail[], creditCardNumber: number, frequentFlyerNumber?: string): Promise<IBookingDetail> {
-
-
     if (!reservationDetails || reservationDetails.length === 0) {
       throw new InputError("Please define valid reservations")
     }
@@ -278,13 +271,10 @@ export default class Contract implements IContract {
       const bookingLegs: IBookingLeg[] = []
 
       for (const reservationDetail of reservationDetails) {
-        const id: string = reservationDetail.id;
+        const id: string = reservationDetail.id
 
         try {
-          var reservation: IReservation | null = await Reservation
-            .findOne({ _id: id })
-            .populate("leg")
-            .exec()
+          var reservation: IReservation | null = await Reservation.findOne({ _id: id }).populate("leg").exec()
         } catch (e) {
           throw new NotFoundError("Could not find reservation")
         }
@@ -299,14 +289,14 @@ export default class Contract implements IContract {
         await reservation?.leg.route.populate("arrivalAirport").execPopulate()
 
         if (reservation) {
-          const leg: ILeg = reservation.leg;
+          const leg: ILeg = reservation.leg
 
           const pnr = createPNR()
 
-          const passengers: IPassenger[] = reservationDetail.passengers.map(passenger => ({ person: passenger, pnr }))
+          const passengers: IPassenger[] = reservationDetail.passengers.map((passenger) => ({ person: passenger, pnr }))
 
           const bookingLeg: IBookingLeg = { leg, passengers }
-          bookingLegs.push(bookingLeg);
+          bookingLegs.push(bookingLeg)
           await reservation.deleteOne()
         } else {
           throw new NotFoundError("Could not find the reservation")
@@ -315,9 +305,8 @@ export default class Contract implements IContract {
 
       booking = new Booking({ bookingLegs, creditCardNumber, frequentFlyerID: frequentFlyerNumber || null })
 
-      await booking.save();
+      await booking.save()
       await session.commitTransaction()
-
     } catch (e) {
       await session.abortTransaction()
       throw e
@@ -332,10 +321,10 @@ export default class Contract implements IContract {
       frequentFlyerId: frequentFlyerNumber || "",
       creditCardNumber,
       price,
-      flightBookings
+      flightBookings,
     }
 
-    return bookingDetail;
+    return bookingDetail
   }
 
   async getBookingOnBookingId(id: IBookingIdentifier): Promise<IBookingDetail> {
@@ -350,7 +339,7 @@ export default class Contract implements IContract {
 
     try {
       booking = await Booking.findOne({ _id: id.id })
-    } catch (e) { }
+    } catch (e) {}
 
     return await processBooking(booking)
   }
@@ -372,7 +361,6 @@ export default class Contract implements IContract {
 
 function convertLegsToFlights(bookingLegs: IBookingLeg[]): IFlightBookingDetail[] {
   return bookingLegs.map(({ leg, passengers }) => {
-
     const flightPassengers: IFlightPassenger[] = passengers.map(({ person: { firstName, lastName }, pnr }) => {
       if (!pnr) {
         throw new Error("PNR is not defined")
@@ -385,12 +373,11 @@ function convertLegsToFlights(bookingLegs: IBookingLeg[]): IFlightBookingDetail[
     const departureAirportIdentifier: IAirportIdentifier = { iata: departureAirport.iata }
     const arrivalAirportIdentifier: IAirportIdentifier = { iata: arrivalAirport.iata }
 
-
     const carrier: ICarrier = leg.route.carrier
     const carrierDetail: ICarrierDetail = { iata: carrier.iata, name: carrier.name }
 
     const { week, year, route } = leg
-    const { weekday, departureSecondInDay, durationInSeconds, } = route
+    const { weekday, departureSecondInDay, durationInSeconds } = route
 
     let baseTime: Moment = moment.tz(departureAirport.timeZone).year(year).week(week).day(weekday).startOf("day").add(departureSecondInDay, "seconds")
     const departureDate: number = baseTime.valueOf()
@@ -412,7 +399,7 @@ function convertLegsToFlights(bookingLegs: IBookingLeg[]): IFlightBookingDetail[
 }
 
 function calculateBookingPrice(booking: IBooking): number {
-  return booking.bookingLegs.reduce((prev, { leg, passengers }) => prev + (passengers.length * leg.route.seatPrice), 0)
+  return booking.bookingLegs.reduce((prev, { leg, passengers }) => prev + passengers.length * leg.route.seatPrice, 0)
 }
 
 async function findBooking(passenger: IPassengerIdentifier): Promise<IBooking | null> {
@@ -432,23 +419,23 @@ async function findBooking(passenger: IPassengerIdentifier): Promise<IBooking | 
         $elemMatch: {
           passengers: {
             $elemMatch: {
-              pnr: passenger.pnr
+              pnr: passenger.pnr,
             },
           },
         },
       },
     })
-  } catch (e) { }
+  } catch (e) {}
   return booking
 }
 
 async function processBooking(booking: IBooking | null): Promise<IBookingDetail> {
   if (booking) {
     await booking.populate("bookingLegs.leg").execPopulate()
-    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.populate("route").execPopulate()))
-    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("carrier").execPopulate()))
-    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("arrivalAirport").execPopulate()))
-    await Promise.all(booking.bookingLegs.map(bookingLeg => bookingLeg.leg.route.populate("departureAirport").execPopulate()))
+    await Promise.all(booking.bookingLegs.map((bookingLeg) => bookingLeg.leg.populate("route").execPopulate()))
+    await Promise.all(booking.bookingLegs.map((bookingLeg) => bookingLeg.leg.route.populate("carrier").execPopulate()))
+    await Promise.all(booking.bookingLegs.map((bookingLeg) => bookingLeg.leg.route.populate("arrivalAirport").execPopulate()))
+    await Promise.all(booking.bookingLegs.map((bookingLeg) => bookingLeg.leg.route.populate("departureAirport").execPopulate()))
   } else {
     throw new NotFoundError(`Booking not found`)
   }
