@@ -44,6 +44,7 @@
 		"start": "yarn ts-node src/index.ts",
 		"ctest": "clear && yarn test",
 		"test": "jest --detectOpenHandles --testTimeout=60000",
-		"git": "git add -A && git commit -m \"Quick Fix Commit\" && git push"
+		"git": "git add -A && git commit -m \"Quick Fix Commit\" && git push",
+		"populate": "yarn ts-node src/util/populate.ts"
 	}
 }
